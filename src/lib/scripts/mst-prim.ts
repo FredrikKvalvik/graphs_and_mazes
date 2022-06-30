@@ -52,15 +52,16 @@ class GraphEdge {
 		this.vertexes = [a, b];
 	}
 }
+export type GraphEdges = GraphEdge[];
 
 export class MstGraph {
 	nodes: GraphNode[];
-	edges: GraphEdge[];
+	// edges: GraphEdge[];
 	size: number;
 
 	constructor(size: number) {
 		this.nodes = [];
-		this.edges = [];
+		// this.edges = [];
 		this.size = size;
 		this.generateNodes();
 	}
@@ -93,15 +94,17 @@ export class MstGraph {
       .filter(m => m !== undefined);
 	}
 
-	private addEdge(edge: GraphEdge) {
-		this.edges.push(edge);
-	}
+	// private addEdge(edge: GraphEdge) {
+	// 	this.edges.push(edge);
+	// }
 
 	createMst() {
 		console.time("mst")
 		console.log("loading...")
 		const nodes = this.nodes;
 		const visited = new Set<number>();
+
+		const treeEdges: GraphEdge[] = []
 
 		// add starting point
 		visited.add(nodes[0].id);
@@ -122,7 +125,7 @@ export class MstGraph {
         continue
       }
       // add lightest edge to mst
-      this.addEdge(edge);
+      treeEdges.push(edge);
       
 			// get new valid edges from the next node
 			edge.vertexes.forEach((vertex) => {
@@ -157,6 +160,12 @@ export class MstGraph {
 			});
 		}
 		console.timeEnd("mst")
-		return this
+		return treeEdges
+	}
+
+	reset() {
+		this.nodes = [];
+		// this.edges = [];
+		this.generateNodes();
 	}
 }
