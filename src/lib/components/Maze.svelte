@@ -104,19 +104,19 @@
 	<Button disabled={waitingForWorker} on:click={handleMazeGenerationWorker}>Generate Maze</Button>
 </div>
 
-<div class="bg-red mx-auto grid border-2 border-black"
-style="width: {mazeSize}px; height: {mazeSize}px; ">
-	<div
-		style="grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
-	>
-		{#if !waitingForWorker}
-			<div class="h-full w-full flex justify-center items-center">
-				<LoadingSpinner />
-			</div>
-		{:else}
-			{#each nodes as node, i (i)}
-				<Cell id={i} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
-			{/each}
-		{/if}
-	</div>
+<div
+	class="mx-auto border-2 border-black"
+	style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
+	class:grid={!waitingForWorker}
+	class:flex={waitingForWorker}
+>
+	{#if waitingForWorker}
+		<div class="h-full w-full flex justify-center items-center">
+			<LoadingSpinner />
+		</div>
+	{:else}
+		{#each nodes as node, i (i)}
+			<Cell id={i} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
+		{/each}
+	{/if}
 </div>
