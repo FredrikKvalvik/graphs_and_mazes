@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { MstGraph } from '$lib/scripts/mst-prim';
+	// import { MstGraph } from '$lib/scripts/mst-prim';
 	import type { GraphEdges } from '$lib/scripts/mst-prim';
 	import { Button } from '$lib/elements';
 	import Cell from '$lib/components/Cell.svelte';
+	import Worker from '$lib/scripts/mst-prim-worker.ts?worker';
 
 	interface node {
 		borderB: boolean;
@@ -12,14 +13,12 @@
 
 	const mazeSize = 800;
 
-	let size = 20;
-	let graph = new MstGraph(size);
-	let edges: GraphEdges = []
+	let size = 50;
+	let edges: GraphEdges = [];
 	let nodes: node[] = [];
+	let waitingForWorker = false;
 
-	$: graph = new MstGraph(size);
-
-	const removeBorders = (graph: MstGraph) => {
+	const removeBorders = () => {
 		edges.forEach((edge) => {
 			const [a, b] = edge.vertexes;
 
@@ -54,28 +53,47 @@
 		});
 	};
 
-  const enrichNodes = (graph: MstGraph) => {
-    nodes = graph.nodes.map((nodes, i) => {
-			return {
+	const enrichNodes = () => {
+		// nodes = graph.nodes.map((nodes, i) => {
+		// 	return {
+		// 		borderB: true,
+		// 		borderR: true,
+		// 		id: i
+		// 	};
+		// });
+		for (let i = 0; i < size * size; i++) {
+			nodes.push({
 				borderB: true,
 				borderR: true,
 				id: i
-			};
-		});
-  }
-
-	const reset = (graph: MstGraph) => {
-		graph.reset();
-		nodes = []
-		edges = []
+			});
+		}
+		nodes = nodes;
 	};
 
-	const handleMazeGeneration = async () => {
-    graph.reset()
-    edges = graph.createMst();
-    
-    enrichNodes(graph)
-		removeBorders(graph);
+	const reset = () => {
+		nodes = [];
+		edges = [];
+	};
+
+	const handleMazeGenerationWorker = () => {
+		reset()
+		waitingForWorker = true;
+
+		const worker = new Worker();
+		worker.postMessage(size);
+
+		worker.onmessage = handleWorkerAnswer;
+	};
+
+	const handleWorkerAnswer = ({ data }: { data: { size: number; edges: GraphEdges } }) => {
+		console.log(data);
+
+		edges = data.edges;
+		enrichNodes();
+		removeBorders();
+
+		waitingForWorker = false;
 	};
 </script>
 
@@ -86,23 +104,16 @@
 		class="border-2 border-black"
 		bind:value={size}
 		type="number"
-		on:change={() => reset(graph)}
+		on:change={() => reset()}
 	/>
-	<Button on:click={handleMazeGeneration}>Generate Maze</Button>
+	<Button disabled={waitingForWorker} on:click={handleMazeGenerationWorker}>Generate Maze</Button>
 </div>
 
 <div
 	class="bg-red mx-auto grid border-2 border-black"
 	style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
 >
-	{#each graph.nodes as node, i}
+	{#each nodes as node, i (i)}
 		<Cell id={i} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
-		<!-- <div
-			data-id={i}
-			class="flex items-center justify-center text-gray-300"
-			class:border-b={nodes[i]?.borderB}
-			class:border-r={nodes[i]?.borderR}
-		>
-		</div> -->
 	{/each}
 </div>

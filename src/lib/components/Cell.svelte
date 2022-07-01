@@ -1,10 +1,13 @@
 <script lang="ts">
+	import {fade} from "svelte/transition"
+
   export let id: number
   export let borderB: boolean
   export let borderR: boolean
 </script>
 
 <div
+transition:fade|in={{delay: id/4, duration: 1500}}
 data-id={id}
 class="flex items-center justify-center text-gray-300"
 class:borderB

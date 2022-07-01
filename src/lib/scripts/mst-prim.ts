@@ -82,9 +82,6 @@ export class MstGraph {
 		const edges = validEdges;
 		return edges.sort((a, b) => a.weight - b.weight)[0];
 	}
-	// addNewValidNode({edge, }: {edge: GraphEdge, visited: Set<number>}) {
-	//   visited.add()
-	// }
 
 	private addNeighbors(node: GraphNode) {
 		node
@@ -93,10 +90,6 @@ export class MstGraph {
 			.map((n) => node.addNeighbor(n))
       .filter(m => m !== undefined);
 	}
-
-	// private addEdge(edge: GraphEdge) {
-	// 	this.edges.push(edge);
-	// }
 
 	createMst() {
 		console.time("mst")
@@ -160,12 +153,14 @@ export class MstGraph {
 			});
 		}
 		console.timeEnd("mst")
-		return treeEdges
+		return {
+			edges: treeEdges,
+			size: this.size
+		}
 	}
 
 	reset() {
 		this.nodes = [];
-		// this.edges = [];
 		this.generateNodes();
 	}
 }
