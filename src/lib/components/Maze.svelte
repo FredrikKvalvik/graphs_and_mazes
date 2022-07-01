@@ -3,6 +3,7 @@
 	import type { GraphEdges } from '$lib/scripts/mst-prim';
 	import { Button } from '$lib/elements';
 	import Cell from '$lib/components/Cell.svelte';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import Worker from '$lib/scripts/mst-prim-worker.ts?worker';
 
 	interface node {
@@ -16,6 +17,7 @@
 	let size = 50;
 	let edges: GraphEdges = [];
 	let nodes: node[] = [];
+
 	let waitingForWorker = false;
 
 	const removeBorders = () => {
@@ -54,13 +56,6 @@
 	};
 
 	const enrichNodes = () => {
-		// nodes = graph.nodes.map((nodes, i) => {
-		// 	return {
-		// 		borderB: true,
-		// 		borderR: true,
-		// 		id: i
-		// 	};
-		// });
 		for (let i = 0; i < size * size; i++) {
 			nodes.push({
 				borderB: true,
@@ -77,7 +72,7 @@
 	};
 
 	const handleMazeGenerationWorker = () => {
-		reset()
+		reset();
 		waitingForWorker = true;
 
 		const worker = new Worker();
@@ -109,11 +104,19 @@
 	<Button disabled={waitingForWorker} on:click={handleMazeGenerationWorker}>Generate Maze</Button>
 </div>
 
-<div
-	class="bg-red mx-auto grid border-2 border-black"
-	style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
->
-	{#each nodes as node, i (i)}
-		<Cell id={i} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
-	{/each}
+<div class="bg-red mx-auto grid border-2 border-black"
+style="width: {mazeSize}px; height: {mazeSize}px; ">
+	<div
+		style="grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
+	>
+		{#if !waitingForWorker}
+			<div class="h-full w-full flex justify-center items-center">
+				<LoadingSpinner />
+			</div>
+		{:else}
+			{#each nodes as node, i (i)}
+				<Cell id={i} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
+			{/each}
+		{/if}
+	</div>
 </div>
