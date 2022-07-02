@@ -1,7 +1,7 @@
 <script lang="ts">
-	// import { MstGraph } from '$lib/scripts/mst-prim';
 	import type { GraphEdges } from '$lib/scripts/mst-prim';
-	import { Button } from '$lib/elements';
+
+	import { mazeSelection } from '$lib/stores/maze-selection.store';
 	import Cell from '$lib/components/Cell.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MazeSelection from '$lib/components/maze-selection.svelte';
@@ -15,11 +15,11 @@
 
 	const mazeSize = 800;
 
-	let size: number = 10
-	let selectedSize: number = 10
+	let size: number = 10;
 	let edges: GraphEdges = [];
 	let nodes: node[] = [];
 
+	// let selectedSize: number = 10
 	let waitingForWorker = false;
 
 	const removeBorders = () => {
@@ -69,7 +69,7 @@
 	};
 
 	const reset = () => {
-		size = 0
+		size = 0;
 		nodes = [];
 		edges = [];
 	};
@@ -79,7 +79,7 @@
 		waitingForWorker = true;
 
 		const worker = new MstWorker();
-		worker.postMessage(selectedSize);
+		worker.postMessage($mazeSelection.selectedSize);
 
 		worker.onmessage = handleWorkerAnswer;
 	};
@@ -95,23 +95,29 @@
 
 	// dont know how to type events
 	const handleSelect = (e: any) => {
-		selectedSize = parseInt(e.target.value)
-	}
+		$mazeSelection.selectedSize = parseInt(e.target.value);
+	};
 </script>
 
-<MazeSelection disabled={waitingForWorker} on:click={handleMazeGenerationWorker}  on:change={handleSelect} />
+<div class="flex flex-row mt-12">
+	<MazeSelection
+		disabled={waitingForWorker}
+		on:click={handleMazeGenerationWorker}
+		on:change={handleSelect}
+	/>
 
-<div
-	class="mx-auto grid border-2 border-black relative"
-	style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
->
-	{#if waitingForWorker}
-		<div class="absolute top-1/2 right-1/2">
-			<LoadingSpinner size="lg" />
-		</div>
-	{:else}
-		{#each nodes as node, i}
-			<Cell id={node.id} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
-		{/each}
-	{/if}
+	<div
+		class="mx-auto grid border-2 border-black relative"
+		style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
+	>
+		{#if waitingForWorker}
+			<div class="absolute top-1/2 right-1/2">
+				<LoadingSpinner size="lg" />
+			</div>
+		{:else}
+			{#each nodes as node, i}
+				<Cell id={node.id} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
+			{/each}
+		{/if}
+	</div>
 </div>
