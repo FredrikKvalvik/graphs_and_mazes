@@ -4,7 +4,7 @@
 	import { Button } from '$lib/elements';
 	import Cell from '$lib/components/Cell.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import MazeSelection from '$lib/components/MazeSelection.svelte';
+	import MazeSelection from '$lib/components/maze-selection.svelte';
 	import MstWorker from '$lib/workers/mst-prim-worker.ts?worker';
 
 	interface node {
