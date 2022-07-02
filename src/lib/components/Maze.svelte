@@ -4,7 +4,8 @@
 	import { Button } from '$lib/elements';
 	import Cell from '$lib/components/Cell.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import Worker from '$lib/scripts/mst-prim-worker.ts?worker';
+	import MazeSelection from '$lib/components/MazeSelection.svelte';
+	import MstWorker from '$lib/workers/mst-prim-worker.ts?worker';
 
 	interface node {
 		borderB: boolean;
@@ -14,7 +15,8 @@
 
 	const mazeSize = 800;
 
-	let size = 50;
+	let size: number = 10
+	let selectedSize: number = 10
 	let edges: GraphEdges = [];
 	let nodes: node[] = [];
 
@@ -67,6 +69,7 @@
 	};
 
 	const reset = () => {
+		size = 0
 		nodes = [];
 		edges = [];
 	};
@@ -75,48 +78,40 @@
 		reset();
 		waitingForWorker = true;
 
-		const worker = new Worker();
-		worker.postMessage(size);
+		const worker = new MstWorker();
+		worker.postMessage(selectedSize);
 
 		worker.onmessage = handleWorkerAnswer;
 	};
 
 	const handleWorkerAnswer = ({ data }: { data: { size: number; edges: GraphEdges } }) => {
-		console.log(data);
-
 		edges = data.edges;
+		size = data.size;
 		enrichNodes();
 		removeBorders();
 
 		waitingForWorker = false;
 	};
+
+	// dont know how to type events
+	const handleSelect = (e: any) => {
+		selectedSize = parseInt(e.target.value)
+	}
 </script>
 
-<div class="p-8 border-2 border-red-200 max-w-md mx-auto">
-	<input
-		max="120"
-		min="2"
-		class="border-2 border-black"
-		bind:value={size}
-		type="number"
-		on:change={() => reset()}
-	/>
-	<Button disabled={waitingForWorker} on:click={handleMazeGenerationWorker}>Generate Maze</Button>
-</div>
+<MazeSelection disabled={waitingForWorker} on:click={handleMazeGenerationWorker}  on:change={handleSelect} />
 
 <div
-	class="mx-auto border-2 border-black"
+	class="mx-auto grid border-2 border-black relative"
 	style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
-	class:grid={!waitingForWorker}
-	class:flex={waitingForWorker}
 >
 	{#if waitingForWorker}
-		<div class="h-full w-full flex justify-center items-center">
-			<LoadingSpinner />
+		<div class="absolute top-1/2 right-1/2">
+			<LoadingSpinner size="lg" />
 		</div>
 	{:else}
-		{#each nodes as node, i (i)}
-			<Cell id={i} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
+		{#each nodes as node, i}
+			<Cell id={node.id} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
 		{/each}
 	{/if}
 </div>
