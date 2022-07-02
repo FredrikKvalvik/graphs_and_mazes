@@ -92,6 +92,7 @@ export class MstGraph {
 	}
 
 	createMst() {
+		this.reset()
 		console.time("mst")
 		console.log("loading...")
 		const nodes = this.nodes;

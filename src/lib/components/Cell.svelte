@@ -7,7 +7,7 @@
 </script>
 
 <div
-transition:fade|in={{delay: id/4, duration: 1500}}
+in:fade={{delay: id/4, duration: 1500}}
 data-id={id}
 class="flex items-center justify-center text-gray-300"
 class:borderB
