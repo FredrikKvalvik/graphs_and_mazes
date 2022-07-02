@@ -2,91 +2,86 @@
 	import type { GraphEdges } from '$lib/scripts/mst-prim';
 
 	import { mazeSelection } from '$lib/stores/maze-selection.store';
+	import { maze } from "$lib/stores/maze.store"
 	import Cell from '$lib/components/Cell.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MazeSelection from '$lib/components/maze-selection.svelte';
-	import MstWorker from '$lib/workers/mst-prim-worker.ts?worker';
+	import PrimMstWorker from '$lib/workers/mst-prim-worker.ts?worker';
 
+	const mazeSize = 700;
 	interface node {
 		borderB: boolean;
 		borderR: boolean;
 		id: number;
 	}
 
-	const mazeSize = 800;
+	// let size: number = 10;
+	// let edges: GraphEdges = [];
+	// let nodes: node[] = [];
 
-	let size: number = 10;
-	let edges: GraphEdges = [];
-	let nodes: node[] = [];
-
-	// let selectedSize: number = 10
-	let waitingForWorker = false;
+	let waitingForWorker = false
 
 	const removeBorders = () => {
-		edges.forEach((edge) => {
+		$maze.edges.forEach((edge) => {
 			const [a, b] = edge.vertexes;
 
 			// if b === case
 			switch (b) {
 				//north
-				case a + size:
-					nodes[a].borderB = false;
+				case a + $maze.size:
+					maze.updateNodes(a, "borderB")
 					break;
 				//south
-				case a - size:
-					nodes[b].borderB = false;
+				case a - $maze.size:
+					maze.updateNodes(b, "borderB")
 					break;
 				//east
 				case a + 1:
-					nodes[a].borderR = false;
+					maze.updateNodes(a, "borderR")
 					break;
 				//west
 				case a - 1:
-					nodes[b].borderR = false;
+					maze.updateNodes(b, "borderR")
 					break;
 			}
 
 			// remove all borders to the right of the maze
-			if (b % size === size - 1) {
-				nodes[b].borderR = false;
+			if (b % $maze.size === $maze.size - 1) {
+				maze.updateNodes(b, "borderR")
 			}
 			// remove all borders to at the bottom of the maze
-			if (b - (size * size - size) >= 0) {
-				nodes[b].borderB = false;
+			if (b - ($maze.size * $maze.size - $maze.size) >= 0) {
+				maze.updateNodes(b, "borderB")
 			}
 		});
 	};
 
 	const enrichNodes = () => {
-		for (let i = 0; i < size * size; i++) {
+		const nodes = []
+		for (let i = 0; i < $maze.size * $maze.size; i++) {
 			nodes.push({
 				borderB: true,
 				borderR: true,
 				id: i
 			});
 		}
-		nodes = nodes;
+		maze.setNodes(nodes)
 	};
 
-	const reset = () => {
-		size = 0;
-		nodes = [];
-		edges = [];
-	};
 
 	const handleMazeGenerationWorker = () => {
-		reset();
+		maze.reset();
 		waitingForWorker = true;
 
-		const worker = new MstWorker();
+		const worker = new PrimMstWorker();
 		worker.postMessage($mazeSelection.selectedSize);
 
 		worker.onmessage = handleWorkerAnswer;
 	};
 
 	const handleWorkerAnswer = ({ data }: { data: { size: number; edges: GraphEdges } }) => {
-		edges = data.edges;
-		size = data.size;
+		maze.setEdges(data.edges);
+		maze.setSize(data.size);
 		enrichNodes();
 		removeBorders();
 
@@ -108,15 +103,15 @@
 
 	<div
 		class="mx-auto grid border-2 border-black relative"
-		style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({size}, 1fr); grid-template-rows: repeat({size}, 1fr);"
+		style="width: {mazeSize}px; height: {mazeSize}px; grid-template-columns: repeat({$maze.size}, 1fr); grid-template-rows: repeat({$maze.size}, 1fr);"
 	>
 		{#if waitingForWorker}
 			<div class="absolute top-1/2 right-1/2">
 				<LoadingSpinner size="lg" />
 			</div>
 		{:else}
-			{#each nodes as node, i}
-				<Cell id={node.id} borderB={nodes[i]?.borderB} borderR={nodes[i]?.borderR} />
+			{#each $maze.nodes as node, i}
+				<Cell id={node.id} borderB={$maze.nodes[i]?.borderB} borderR={$maze.nodes[i]?.borderR} />
 			{/each}
 		{/if}
 	</div>

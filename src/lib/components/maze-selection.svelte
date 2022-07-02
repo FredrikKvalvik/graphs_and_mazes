@@ -11,7 +11,7 @@
 			<label for="maze-size">Maze size:</label>
 			<select
 				on:change={(e) => mazeSelection.setSelectedSize(e.target.value)}
-        class="p-1"
+				class="p-1"
 				name="maze-size"
 				id="maze-size"
 			>
